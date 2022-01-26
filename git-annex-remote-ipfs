@@ -18,14 +18,14 @@ isipfsurl () {
 urltoaddress () {
 	echo "${1}" | sed -e 's/^ipfs://'
 	# done
-	return	
+	return
 }
 
 # convert address to to ipfs: url
 addresstourl () {
 	echo "ipfs:${1}"
 	# done
-	return	
+	return
 }
 
 # Gets a VALUE response and stores it in $RET
@@ -33,6 +33,7 @@ getvalue () {
 	read resp
 	# Tricky POSIX shell code to split first word of the resp,
 	# preserving all other whitespace
+	echo "Reading RESP : ${resp}" >&2
 	case "${resp%% *}" in
 		VALUE)
 		#OLD CODE:
@@ -50,7 +51,8 @@ getvalue () {
 		;;
 	esac
 	# done
-	return	
+	echo "" >&2
+	return
 }
 
 # Get a list of all known ipfs addresses for a key,
@@ -62,9 +64,9 @@ getaddrs () {
         echo GETURLS "${key}"
         getvalue
         while [ -n "${RET}" ] ; do
-        		echo "================================="
+        		echo "=================================" >&2
         		echo BUG: RET IS $RET AND ISIPFSURL RETURNS `isipfsurl $RET` >&2
-        		echo "================================="
+        		echo "=================================" >&2
         		PARSED_RET=`echo $RET | sed 's/VALUE //'`;
                 if isipfsurl $PARSED_RET; then
                 	echo "$PARSED_RET" >> "$tmp"
