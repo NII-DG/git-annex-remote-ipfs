@@ -5,27 +5,21 @@
 # Install in PATH as git-annex-remote-ipfs
 #
 # Copyright 2015 Joey Hess; licenced under the GNU GPL version 3 or higher.
+
 set -e
 
 # use ipfs: as a prefix to indicate when an "url" is really stored in ipfs
 isipfsurl () {
-	echo "${1}" | egrep -q "^ipfs:"
-	# done
-	return
+	echo "$1" | egrep -q "^ipfs:"
 }
 
 # convert an ipfs: url to an address that the ipfs client understands
 urltoaddress () {
-	echo "${1}" | sed -e 's/^ipfs://'
-	# done
-	return
+	echo "$1" | sed -e 's/^ipfs://'
 }
 
-# convert address to to ipfs: url
 addresstourl () {
-	echo "ipfs:${1}"
-	# done
-	return
+	echo "ipfs:$1"
 }
 
 # Gets a VALUE response and stores it in $RET
@@ -33,45 +27,29 @@ getvalue () {
 	read resp
 	# Tricky POSIX shell code to split first word of the resp,
 	# preserving all other whitespace
-	echo "Reading RESP : ${resp}" >&2
 	case "${resp%% *}" in
 		VALUE)
-		#OLD CODE:
-		#RET="$(echo "$resp" | sed 's/^VALUE \?//')"
-		#NEW CODE:
-			if [[ ${resp} = "VALUE" ]]; then
-				RET=""
-			else
-				RET="$(echo "${resp}" | sed 's/^VALUE \?//')"
-				echo "RESP: ${resp}, RESP SED: ${RET}" >&2
-			fi
+			RET="$(echo "$resp" | sed 's/^VALUE \?//')"
 		;;
 		*)
 		RET=""
 		;;
 	esac
-	# done
-	echo "" >&2
-	return
 }
 
 # Get a list of all known ipfs addresses for a key,
 # storing it in a temp file.
 getaddrs () {
-        key="${1}"
-        tmp="${2}"
+        key="$1"
+        tmp="$2"
 
-        echo GETURLS "${key}"
+        echo GETURLS "$key"
         getvalue
-        while [ -n "${RET}" ] ; do
-        		echo "=================================" >&2
-        		echo BUG: RET IS $RET AND ISIPFSURL RETURNS `isipfsurl $RET` >&2
-        		echo "=================================" >&2
-        		PARSED_RET=`echo $RET | sed 's/VALUE //'`;
-                if isipfsurl $PARSED_RET; then
-                	echo "$PARSED_RET" >> "$tmp"
-                	getvalue
+        while [ -n "$RET" ]; do
+                if isipfsurl "$RET"; then
+                        echo "$RET" >> "$tmp"
                 fi
+                getvalue
         done
 }
 
@@ -121,7 +99,6 @@ while read line; do
 					addrtmp=$(mktemp)
 					getaddrs "$key" "$addrtmp"
 					addr="$(urltoaddress "$(head "$addrtmp")")" || true
-
 					rm -f "$addrtmp"
 					if [ -z "$addr" ]; then
 						echo TRANSFER-FAILURE RETRIEVE "$key" "no known ipfs address for this key"
